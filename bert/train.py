@@ -96,7 +96,7 @@ class Trainer(object):
         return results
 
     def pred(self, predict, model_file, data_parallel=True):
-        self.model.pred() # predict mode
+        self.model.eval() # predict mode
         self.load(model_file, None)
         model = self.model.to(self.device)
         if data_parallel: # use Data Parallelism with Multi-GPU
@@ -108,7 +108,7 @@ class Trainer(object):
             batch = [t.to(self.device) for t in batch]
             with torch.no_grad(): # evaluation without gradient calculation
                 logits = predict(model, batch) # accuracy to print
-            results.append(logtis)
+            results.append(logits)
             # iter_bar.set_description('Iter(acc=%5.3f)'%accuracy)
         return results
 

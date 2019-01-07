@@ -155,7 +155,6 @@ class Classifier(nn.Module):
         self.classifier = nn.Linear(cfg.dim, n_labels)
 
     def forward(self, input_ids, segment_ids, input_mask):
-        print(input_ids, segment_ids, input_mask)
         h = self.transformer(input_ids, segment_ids, input_mask)
         # only use the first h in the sequence
         pooled_h = self.activ(self.fc(h[:, 0]))

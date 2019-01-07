@@ -71,6 +71,8 @@ def main(train_cfg='config/train_mrpc.json',
             input_ids, segment_ids, input_mask, label_id = batch
             logits = model(input_ids, segment_ids, input_mask)
             return logits
+        results = trainer.pred(predict, model_file, data_parallel)
+        print(results)
 
 if __name__ == '__main__':
    fire.Fire(main)
