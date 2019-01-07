@@ -1,7 +1,6 @@
 from bert.classify import *
+import fire
 
-
-# TODO: embedding layer 수정한 pipeline 만들기\
 class Binary(CsvDataset):
     labels = ('0', '1') # label names
     def __init__(self, file, pipeline=[]):
@@ -14,13 +13,13 @@ class Binary(CsvDataset):
 
 def main(train_cfg='config/train_mrpc.json',
          model_cfg='config/bert_base.json',
-         data_file='data/cloth.csv',
+         data_file='data/train_data.csv',
          model_file=None,
-         pretrain_file='model/pretrain/bert_model.ckpt',
+         pretrain_file='data/pretrain/bert_model.ckpt',
          data_parallel=True,
          vocab='data/vocab.txt',
-         save_dir='data/model',
-         max_len=512,
+         save_dir='model/2019-01-07/',
+         max_len=48,
          mode='train'):
 
     cfg = train.Config.from_json(train_cfg)
@@ -54,7 +53,6 @@ def main(train_cfg='config/train_mrpc.json',
             logits = model(input_ids, segment_ids, input_mask)
             loss = criterion(logits, label_id)
             return loss
-
         trainer.train(get_loss, model_file, pretrain_file, data_parallel)
 
     elif mode == 'eval':
@@ -65,11 +63,10 @@ def main(train_cfg='config/train_mrpc.json',
             result = (label_pred == label_id).float() #.cpu().numpy()
             accuracy = result.mean()
             return accuracy, result
-
         results = trainer.eval(evaluate, model_file, data_parallel)
         total_accuracy = torch.cat(results).mean().item()
         print('Accuracy:', total_accuracy)
 
 
 if __name__ == '__main__':
-    main()
+   fire.Fire(main)
