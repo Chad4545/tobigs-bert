@@ -66,7 +66,11 @@ def main(train_cfg='config/train_mrpc.json',
         results = trainer.eval(evaluate, model_file, data_parallel)
         total_accuracy = torch.cat(results).mean().item()
         print('Accuracy:', total_accuracy)
-
+    elif mode == 'predict':
+        def predict(model, batch):
+            input_ids, segment_ids, input_mask, label_id = batch
+            logits = model(input_ids, segment_ids, input_mask)
+            return logits
 
 if __name__ == '__main__':
    fire.Fire(main)

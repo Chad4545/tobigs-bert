@@ -95,6 +95,23 @@ class Trainer(object):
             iter_bar.set_description('Iter(acc=%5.3f)'%accuracy)
         return results
 
+    def pred(self, predict, model_file, data_parallel=True):
+        self.model.pred() # predict mode
+        self.load(model_file, None)
+        model = self.model.to(self.device)
+        if data_parallel: # use Data Parallelism with Multi-GPU
+            model = nn.DataParallel(model)
+
+        results = [] # prediction results
+        iter_bar = tqdm(self.data_iter, desc='Iter (loss=X.XXX)')
+        for batch in iter_bar:
+            batch = [t.to(self.device) for t in batch]
+            with torch.no_grad(): # evaluation without gradient calculation
+                logits = predict(model, batch) # accuracy to print
+            results.append(logtis)
+            # iter_bar.set_description('Iter(acc=%5.3f)'%accuracy)
+        return results
+
     def load(self, model_file, pretrain_file):
         """ load saved model or pretrained transformer (a part of model) """
         if model_file:
