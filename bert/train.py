@@ -108,8 +108,7 @@ class Trainer(object):
             batch = [t.to(self.device) for t in batch]
             with torch.no_grad(): # evaluation without gradient calculation
                 logits = predict(model, batch) # accuracy to print
-            results.append(logits)
-            # iter_bar.set_description('Iter(acc=%5.3f)'%accuracy)
+            results.extend(logits.tolist())
         return results
 
     def load(self, model_file, pretrain_file):

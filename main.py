@@ -40,6 +40,8 @@ def main(train_cfg='config/train_mrpc.json',
 
     model = Classifier(model_cfg, len(TaskDataset.labels))
     criterion = nn.CrossEntropyLoss()
+#for sigmoid
+#criterion = nn.BCELoss()
 
     trainer = train.Trainer(cfg,
                             model,
@@ -51,7 +53,7 @@ def main(train_cfg='config/train_mrpc.json',
         def get_loss(model, batch, global_step): # make sure loss is a scalar tensor
             input_ids, segment_ids, input_mask, label_id = batch
             logits = model(input_ids, segment_ids, input_mask)
-            loss = criterion(logits, label_id)
+            loss = criterion(logits, label_id.float())
             return loss
         trainer.train(get_loss, model_file, pretrain_file, data_parallel)
 
@@ -66,13 +68,16 @@ def main(train_cfg='config/train_mrpc.json',
         results = trainer.eval(evaluate, model_file, data_parallel)
         total_accuracy = torch.cat(results).mean().item()
         print('Accuracy:', total_accuracy)
+
     elif mode == 'predict':
         def predict(model, batch):
             input_ids, segment_ids, input_mask, label_id = batch
             logits = model(input_ids, segment_ids, input_mask)
             return logits
-        results = trainer.pred(predict, model_file, data_parallel)
-        print(results)
-
+        with open(save_dir+'predict_logit', 'w') as save_file:
+            results = trainer.pred(predict, model_file, data_parallel)
+            for result in results:
+                save_file.write('{0}\n'.format(result[0]))
+            
 if __name__ == '__main__':
    fire.Fire(main)

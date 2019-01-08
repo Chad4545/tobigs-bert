@@ -134,7 +134,8 @@ class TokenIndexing(Pipeline):
         segment_ids = [0]*len(tokens_a) + [1]*len(tokens_b) # token type ids
         input_mask = [1]*(len(tokens_a) + len(tokens_b))
         label_id = self.label_map[label]
-
+#for sigmoid
+#label_id = int(label)
         # zero padding
         n_pad = self.max_len - len(input_ids)
         input_ids.extend([0]*n_pad)
@@ -153,12 +154,16 @@ class Classifier(nn.Module):
         self.activ = nn.Tanh()
         self.drop = nn.Dropout(cfg.p_drop_hidden)
         self.classifier = nn.Linear(cfg.dim, n_labels)
+#For sigmoid
+#self.sigmoid = nn.Sigmoid()
 
     def forward(self, input_ids, segment_ids, input_mask):
         h = self.transformer(input_ids, segment_ids, input_mask)
         # only use the first h in the sequence
         pooled_h = self.activ(self.fc(h[:, 0]))
         logits = self.classifier(self.drop(pooled_h))
+#For sigomid
+#logits = self.sigmoid(self.classifier(self.drop(pooled_h)))
         return logits
 
 #pretrain_file='../uncased_L-12_H-768_A-12/bert_model.ckpt',
