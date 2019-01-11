@@ -10,6 +10,15 @@ class Binary(CsvDataset):
         for line in itertools.islice(lines, 1, None): # skip header
             yield line[0], line[1], [] # label, text
 
+class IsNext(CsvDataset):
+    labels = ('0', '1') # label names
+    def __init__(self, file, pipeline=[]):
+        super().__init__(file, pipeline)
+
+    def get_instances(self, lines):
+        for line in itertools.islice(lines, 1, None): # skip header
+            yield line[0], line[1], line[1] # label, text
+
 
 def main(train_cfg='config/train_mrpc.json',
          model_cfg='config/bert_base.json',
@@ -29,7 +38,8 @@ def main(train_cfg='config/train_mrpc.json',
 
     tokenizer = tokenization.FullTokenizer(vocab_file=vocab, do_lower_case=True)
 
-    TaskDataset = Binary # task dataset class according to the task
+#    TaskDataset = Binary # task dataset class according to the task
+    TaskDataset = IsNext # task dataset class according to the task
     pipeline = [Tokenizing(tokenizer.convert_to_unicode, tokenizer.tokenize),
                 AddSpecialTokensWithTruncation(max_len),
                 TokenIndexing(tokenizer.convert_tokens_to_ids,
@@ -53,7 +63,7 @@ def main(train_cfg='config/train_mrpc.json',
         def get_loss(model, batch, global_step): # make sure loss is a scalar tensor
             input_ids, segment_ids, input_mask, label_id = batch
             logits = model(input_ids, segment_ids, input_mask)
-            loss = criterion(logits, label_id.float())
+            loss = criterion(logits, label_id)
             return loss
         trainer.train(get_loss, model_file, pretrain_file, data_parallel)
 
@@ -74,10 +84,8 @@ def main(train_cfg='config/train_mrpc.json',
             input_ids, segment_ids, input_mask, label_id = batch
             logits = model(input_ids, segment_ids, input_mask)
             return logits
-        with open(save_dir+'predict_logit', 'w') as save_file:
-            results = trainer.pred(predict, model_file, data_parallel)
-            for result in results:
-                save_file.write('{0}\n'.format(result[0]))
-            
+        results = trainer.pred(predict, model_file, data_parallel)
+        print(results)
+
 if __name__ == '__main__':
    fire.Fire(main)
